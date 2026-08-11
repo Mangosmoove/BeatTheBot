@@ -94,12 +94,28 @@ public class OpenAIService {
     """.formatted(jobDescription, resumeText);
 
         Map<String, Object> requestBody = Map.of(
-                "model", "llama-3.3-70b-versatile",
+                "model", "qwen/qwen3.6-27b",
                 "messages", List.of(
-                        Map.of("role", "system", "content", "You are a resume scoring assistant. Always respond with valid JSON only."),
-                        Map.of("role", "user", "content", prompt)
+                        Map.of(
+                                "role", "system",
+                                "content", """
+                You are a resume scoring assistant.
+                Return ONLY valid JSON.
+                Do not output reasoning.
+                Do not output <think> tags.
+                Do not use markdown.
+                """
+                        ),
+                        Map.of(
+                                "role", "user",
+                                "content", prompt
+                        )
                 ),
-                "temperature", 0.3
+                "temperature", 0.3,
+                "max_completion_tokens", 4096,
+                "response_format", Map.of(
+                        "type", "json_object"
+                )
         );
 
         String response = restClient.post()
@@ -110,6 +126,9 @@ public class OpenAIService {
                 .retrieve()
                 .body(String.class);
 
+        System.out.println("=== GROQ RAW RESPONSE ===");
+        System.out.println(response);
+        System.out.println("=========================");
         try {
             JsonNode root = objectMapper.readTree(response);
             return root.path("choices").get(0).path("message").path("content").asText();

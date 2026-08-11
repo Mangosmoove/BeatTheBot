@@ -9,7 +9,7 @@ A Spring Boot backend that scores resumes against a job description the way an A
   - `spring-boot-starter-data-jpa` — persistence via Spring Data JPA
 - **Jakarta Persistence (JPA)** — entity mapping
 - **Apache Tika** — extracts raw text from uploaded resume files (PDF, DOCX, etc.)
-- **Groq API** (OpenAI-compatible chat completions endpoint, `llama-3.3-70b-versatile`) — LLM-based ATS scoring, called via Spring's `RestClient`
+- **Groq API** (OpenAI-compatible chat completions endpoint, `qwen/qwen3.6-27b`) — LLM-based ATS scoring, called via Spring's `RestClient`
 - **Jackson** (`tools.jackson`) — JSON (de)serialization
 - A relational database via JPA (configure your own datasource, e.g. Postgres/MySQL/H2)
 
@@ -102,8 +102,6 @@ or, if using Gradle:
 ```
 
 ## Notes / Known Considerations
-
-- Current Groq version is deprecated.
 - CORS configuration is yet implemented.
 - No authentication/authorization is present on the `/api/score` endpoint; `sessionToken` is client-supplied and not validated server-side.
 - Error handling in `ApplicationController` currently swallows scoring exceptions into the saved record rather than returning an error HTTP status.
