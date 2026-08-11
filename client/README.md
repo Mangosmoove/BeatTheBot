@@ -2,8 +2,6 @@
 
 A React front-end that helps job seekers "beat" Applicant Tracking Systems (ATS). Users upload their resume and paste a job description, and the app is designed to run an ATS-style scan that surfaces layout issues, keyword matches, section problems, and formatting red flags before they submit their application.
 
-> ⚠️ This is the client only. Result parsing/analysis logic is pending backend integration.
-
 ## Tech Stack
 
 - **React 19** + **TypeScript**
@@ -17,6 +15,7 @@ A React front-end that helps job seekers "beat" Applicant Tracking Systems (ATS)
 ## Design System
 
 The UI uses a "terminal / hacker" aesthetic:
+
 - Deep black background with neon matrix-green accents (defined via `oklch()` CSS variables in `style.css`)
 - `JetBrains Mono` monospace font throughout
 - Custom Tailwind utilities: `text-glow`, `border-glow`, `scanline`, `cursor-blink`, `flicker`
@@ -25,6 +24,7 @@ The UI uses a "terminal / hacker" aesthetic:
 ## Getting Started
 
 ### Prerequisites
+
 - Node.js (a recent LTS version is recommended)
 - npm
 
@@ -61,5 +61,5 @@ npm run preview
 ### Lint
 
 ```bash
-npm run lint
+npx prettier . --write
 ```

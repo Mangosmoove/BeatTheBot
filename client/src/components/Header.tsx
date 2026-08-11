@@ -1,5 +1,4 @@
-import { Terminal } from "lucide-react";
-
+import { Terminal } from 'lucide-react';
 
 const Header = () => {
   return (
@@ -19,6 +18,6 @@ const Header = () => {
       </div>
     </header>
   );
-}
+};
 
 export default Header;

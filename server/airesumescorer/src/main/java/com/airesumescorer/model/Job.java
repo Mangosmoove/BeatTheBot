@@ -7,7 +7,7 @@ public class Job {
     @GeneratedValue(strategy = GenerationType.IDENTITY) //automatically increments
     private Long id;
 
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "TEXT")
     private String description;
 
     public Long getId() { return id; }

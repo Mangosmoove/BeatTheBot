@@ -8,11 +8,11 @@ const Hero = () => {
         <span className="text-muted-foreground">Land the interview.</span>
       </h1>
       <p className="mx-auto mt-6 max-w-2xl text-balance text-base text-muted-foreground md:text-lg">
-        We reverse-engineer the ATS so your resume reaches a human. Drop your
-        resume, paste the job, and see what the bot sees.
+        We reverse-engineer the ATS so your resume reaches a human. Drop your resume, paste the job,
+        and see what the bot sees.
       </p>
     </section>
   );
-}
+};
 
 export default Hero;
