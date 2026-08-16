@@ -32,4 +32,8 @@ build/
 .vscode/
 
 ### local app properties ###
-application-local.properties
+application-local.properties.DS_Store
+**/.DS_Store
+
+# local secrets, never commit
+src/main/resources/application-local.properties
