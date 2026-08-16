@@ -3,9 +3,10 @@ import { TextField } from '@mui/material';
 interface JobDescriptionInputProps {
   value: string;
   onChange: (value: string) => void;
+  disabled?: boolean;
 }
 
-const JobDescriptionInput = ({ value, onChange }: JobDescriptionInputProps) => {
+const JobDescriptionInput = ({ value, onChange, disabled = false }: JobDescriptionInputProps) => {
   return (
     <div className="space-y-2">
       <label
@@ -18,6 +19,7 @@ const JobDescriptionInput = ({ value, onChange }: JobDescriptionInputProps) => {
         id="jd"
         value={value}
         onChange={(e) => onChange(e.target.value)}
+        disabled={disabled}
         placeholder="Paste the job description here..."
         multiline
         minRows={9}

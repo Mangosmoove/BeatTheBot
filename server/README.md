@@ -102,6 +102,5 @@ or, if using Gradle:
 ```
 
 ## Notes / Known Considerations
-- CORS configuration is yet implemented.
 - No authentication/authorization is present on the `/api/score` endpoint; `sessionToken` is client-supplied and not validated server-side.
 - Error handling in `ApplicationController` currently swallows scoring exceptions into the saved record rather than returning an error HTTP status.

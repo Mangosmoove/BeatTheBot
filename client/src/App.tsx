@@ -1,14 +1,14 @@
+import { useState } from 'react';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import LandingView from './components/LandingView';
 import ResultsView from './components/ResultsView';
 import type { Application } from './types/Application';
-import { useState } from 'react';
 
 function App() {
   const [result, setResult] = useState<Application | null>(null);
 
-  const resubmit = () => {
+  const resetToLanding = () => {
     setResult(null);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -20,7 +20,7 @@ function App() {
         {!result ? (
           <LandingView onResult={setResult} />
         ) : (
-          <ResultsView result={result} onResubmit={resubmit} />
+          <ResultsView result={result} onResubmit={resetToLanding} />
         )}
       </main>
       <Footer />

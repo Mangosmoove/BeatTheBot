@@ -101,10 +101,11 @@ public class OpenAIService {
                                 "content", """
                 You are a resume scoring assistant.
                 Return ONLY valid JSON.
-                Do not output reasoning.
+                Do not output reasoning, self-correction, or internal deliberation anywhere, including inside "notes" fields.
+                Each "notes" value must be a single direct sentence of feedback only — no meta-commentary about your own scoring process.
                 Do not output <think> tags.
                 Do not use markdown.
-                """
+            """
                         ),
                         Map.of(
                                 "role", "user",
@@ -112,7 +113,8 @@ public class OpenAIService {
                         )
                 ),
                 "temperature", 0.3,
-                "max_completion_tokens", 4096,
+                "max_completion_tokens", 1060,
+                "reasoning_effort", "none",
                 "response_format", Map.of(
                         "type", "json_object"
                 )

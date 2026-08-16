@@ -8,27 +8,35 @@ interface ResultsViewProps {
 
 const ResultsView = ({ result, onResubmit }: ResultsViewProps) => {
   let sections: AiSections = {};
+  let errorMessage: string | null = null;
   try {
-    sections = JSON.parse(result.aiSections);
+    const parsed = JSON.parse(result.aiSections);
+    if (parsed && typeof parsed === 'object' && 'error' in parsed) {
+      errorMessage = parsed.error;
+    } else {
+      sections = parsed;
+    }
   } catch {
-    // aiSections may be the error payload set in ApplicationController's catch block
+    // malformed JSON falls through to the error state below
   }
 
-  const hasError = Object.keys(sections).length === 0;
+  const hasError = errorMessage !== null || Object.keys(sections).length === 0;
 
   return (
     <div className="space-y-8">
-      <div className="text-center">
-        <div className="text-xs uppercase tracking-[0.25em] text-primary">// scan_complete</div>
-        <div className="mt-2 text-6xl font-bold text-foreground">
-          {result.aiScore}
-          <span className="text-2xl text-muted-foreground">/100</span>
+      {!hasError && (
+        <div className="text-center">
+          <div className="text-xs uppercase tracking-[0.25em] text-primary">// scan_complete</div>
+          <div className="mt-2 text-6xl font-bold text-foreground">
+            {result.aiScore}
+            <span className="text-2xl text-muted-foreground">/100</span>
+          </div>
         </div>
-      </div>
+      )}
 
       {hasError ? (
         <p className="text-center text-sm text-muted-foreground">
-          Something went wrong scoring this resume. Try resubmitting.
+          {errorMessage ?? 'Something went wrong scoring this resume. Try resubmitting.'}
         </p>
       ) : (
         <div className="grid gap-4 md:grid-cols-2">

@@ -50,8 +50,8 @@ const LandingView = ({ onResult }: LandingViewProps) => {
     <>
       <Hero />
       <form onSubmit={onSubmit} className="mt-12 grid gap-6 md:grid-cols-2">
-        <ResumeUpload file={file} onFileChange={setFile} />
-        <JobDescriptionInput value={jd} onChange={setJd} />
+        <ResumeUpload file={file} onFileChange={setFile} disabled={status === 'loading'} />
+        <JobDescriptionInput value={jd} onChange={setJd} disabled={status === 'loading'} />
 
         <div className="md:col-span-2 space-y-4">
           {error && (
