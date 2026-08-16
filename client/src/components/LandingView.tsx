@@ -16,6 +16,7 @@ const LandingView = ({ onResult }: LandingViewProps) => {
   const [jd, setJd] = useState('');
   const [status, setStatus] = useState<'idle' | 'loading'>('idle');
   const [error, setError] = useState<string | null>(null);
+  const API_URL = import.meta.env.VITE_API_URL;
 
   const onSubmit = async (e: SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -30,7 +31,7 @@ const LandingView = ({ onResult }: LandingViewProps) => {
     formData.append('sessionToken', getSessionToken());
 
     try {
-      const res = await fetch('http://localhost:8080/api/score', {
+      const res = await fetch(`${API_URL}/api/score`, {
         method: 'POST',
         body: formData,
       });
