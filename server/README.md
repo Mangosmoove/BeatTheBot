@@ -8,10 +8,10 @@ A Spring Boot backend that scores resumes against a job description the way an A
   - `spring-boot-starter-web` — REST controllers
   - `spring-boot-starter-data-jpa` — persistence via Spring Data JPA
 - **Jakarta Persistence (JPA)** — entity mapping
-- **Apache Tika** — extracts raw text from uploaded resume files (PDF, DOCX, etc.)
+- **Apache Tika** — extracts raw text from uploaded resume files (PDF, DOCX)
 - **Groq API** (OpenAI-compatible chat completions endpoint, `qwen/qwen3.6-27b`) — LLM-based ATS scoring, called via Spring's `RestClient`
 - **Jackson** (`tools.jackson`) — JSON (de)serialization
-- A relational database via JPA (configure your own datasource, e.g. Postgres/MySQL/H2)
+- **PostgreSQL** via JPA
 
 ## Project Structure
 
@@ -39,17 +39,17 @@ src/main/java/com/airesumescorer/
 ## How It Works
 
 1. Client sends a `multipart/form-data` request to `POST /api/score` with:
-   - `resume` — the resume file (PDF/DOCX/etc.)
-   - `jobDescription` — the job description text
-   - `sessionToken` — a client-generated session identifier
+  - `resume` — the resume file (PDF/DOCX)
+  - `jobDescription` — the job description text
+  - `sessionToken` — a client-generated session identifier
 2. `TikaService` extracts plain text from the uploaded resume.
 3. A `Job` row is created/saved with the job description.
 4. `OpenAIService` sends a structured prompt (resume text + job description) to the Groq chat completions API, asking for a strict JSON response containing:
-   - An overall `score` (0–100)
-   - `sections` broken into `layout`, `keywords`, `sections`, and `formatting`, each with individual pass/fail `checks` and feedback notes
+  - An overall `score` (0–100)
+  - `sections` broken into `layout`, `keywords`, `sections`, and `formatting`, each with individual pass/fail `checks` and feedback notes
 5. The controller re-derives each category's `passed` flag from its child checks (rather than trusting the LLM's own aggregation), since the LLM isn't always reliable at that arithmetic.
 6. The resulting `Application` (resume text, AI score, AI section breakdown, job reference, session token, timestamp) is persisted and returned to the client with `201 Created`.
-7. If scoring fails for any reason, the application is still saved with `aiScore = 0` and an error message in `aiSections`, rather than failing the whole request.
+7. If scoring fails for any reason (malformed AI response, rate limiting, or any other exception), the application is still saved with `aiScore = 0` and a descriptive error message in `aiSections`, rather than failing the whole request.
 
 ## API
 
@@ -81,13 +81,31 @@ src/main/java/com/airesumescorer/
 
 ## Configuration
 
-The service requires a Groq API key, supplied via the `groq.api.key` property (e.g. in `application.properties`/`application.yml`, or as an environment variable depending on your Spring configuration setup):
+All environment-specific config is externalized via environment variables, with local-dev defaults baked into `application.properties`:
 
 ```properties
-groq.api.key=your-groq-api-key
+spring.datasource.url=${DATABASE_URL:jdbc:postgresql://localhost:5432/airesumescorer}
+spring.datasource.username=${DATABASE_USERNAME:postgres}
+spring.datasource.password=${DATABASE_PASSWORD:}
+spring.datasource.driver-class-name=org.postgresql.Driver
+spring.jpa.hibernate.ddl-auto=${JPA_DDL_AUTO:update}
+spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect
+
+groq.api.key=${GROQ_API_KEY:}
+
+app.cors.allowed-origins=${CORS_ALLOWED_ORIGINS:http://localhost:5173}
 ```
 
-You'll also need to configure a datasource for JPA (e.g. `spring.datasource.*` properties) since no datasource configuration is included in the files shown here.
+| Variable | Purpose | Local default |
+|---|---|---|
+| `DATABASE_URL` | JDBC connection string for Postgres | `jdbc:postgresql://localhost:5432/airesumescorer` |
+| `DATABASE_USERNAME` | Postgres username | `postgres` |
+| `DATABASE_PASSWORD` | Postgres password | *(empty)* |
+| `JPA_DDL_AUTO` | Hibernate schema behavior (`update` for dev, `validate` once schema is stable) | `update` |
+| `GROQ_API_KEY` | API key for the Groq LLM endpoint | *(none — required)* |
+| `CORS_ALLOWED_ORIGINS` | Comma-separated list of allowed frontend origins | `http://localhost:5173` |
+
+For local secrets you don't want to check in, use an `application-local.properties` file (gitignored) and run with the `local` Spring profile active, e.g. `SPRING_PROFILES_ACTIVE=local`.
 
 ## Running Locally
 
@@ -100,7 +118,3 @@ or, if using Gradle:
 ```bash
 ./gradlew bootRun
 ```
-
-## Notes / Known Considerations
-- No authentication/authorization is present on the `/api/score` endpoint; `sessionToken` is client-supplied and not validated server-side.
-- Error handling in `ApplicationController` currently swallows scoring exceptions into the saved record rather than returning an error HTTP status.
