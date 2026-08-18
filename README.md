@@ -2,6 +2,8 @@
 
 BeatTheBot helps job seekers see their resume the way an Applicant Tracking System (ATS) does. Users upload a resume and paste a job description; the app scans for layout issues, keyword mismatches, missing sections, and formatting problems that could get a resume auto-rejected before a human ever reads it.
 
+You can interact with a deployed version of BeatTheBot at [https://beat-the-bot-gray.vercel.app](https://beat-the-bot-gray.vercel.app/). Please note that if it takes a while to receive your score, it's because I used the free tier of Render, which can take some time to spin up if it is in an idle state.
+
 The project is split into two independently deployable pieces:
 
 ```
@@ -45,18 +47,30 @@ Each side of the app reads its environment-specific config from environment vari
 
 ## Deployment
 
-- **Server + database**: deployed on Railway (Spring Boot service + managed Postgres instance in the same project).
-- **Client**: deployed on Vercel, built from the `client/` directory.
+- **Client**: deployed on [Vercel](https://vercel.com), built from the `client/` directory (root directory set to `client`, Vite preset auto-detected).
+- **Server**: deployed on [Render](https://render.com) as a Docker-based web service (root directory set to `server/airesumescorer`, where the `Dockerfile`, `pom.xml`, and `mvnw` live). Render's native Java buildpack doesn't yet support the Java version this project targets, so the server ships as a multi-stage Docker build (`eclipse-temurin:25-jdk` to compile, `eclipse-temurin:25-jre` to run).
+- **Database**: [Neon](https://neon.tech) managed Postgres (free tier).
 
 After deploying, the two are wired together via environment variables:
-- Server's `CORS_ALLOWED_ORIGINS` is set to the client's deployed URL.
-- Client's `VITE_API_URL` is set to the server's deployed URL.
+- Server's `CORS_ALLOWED_ORIGINS` (Render) is set to the client's deployed Vercel URL, e.g. `https://your-project.vercel.app` (no trailing slash).
+- Client's `VITE_API_URL` (Vercel) is set to the server's deployed Render URL, e.g. `https://your-service.onrender.com` (no trailing slash).
 
-## Known Limitations
+Neon's single connection string needs to be split into the three vars the server expects:
 
-- No authentication/authorization is present on the `/api/score` endpoint; `sessionToken` is client-supplied and not validated server-side.
+```
+postgresql://[USERNAME]:[PASSWORD]@[HOST]/[DBNAME]?sslmode=require
+```
+
+| Variable | Value |
+|---|---|
+| `DATABASE_USERNAME` | `[USERNAME]` |
+| `DATABASE_PASSWORD` | `[PASSWORD]` |
+| `DATABASE_URL` | `jdbc:postgresql://[HOST]/[DBNAME]?sslmode=require` |
+
+Note the `jdbc:` prefix gets added and the `username:password@` portion is stripped out into the separate vars above.
+
+**Cold starts**: Render's free tier spins the service down after ~15 min idle; the next request can take 30–60s to wake it back up. Expected behavior on the free tier, not a bug.
 
 ## Future Enhancements
-
 - **Resubmission feature** — allow a user to resubmit a scan (e.g. after a scoring failure or to rescan an updated resume) using `ApplicationRepository`'s existing `findTop2ByJobIdAndSessionTokenOrderBySubmittedAtDesc` lookup as a starting point.
 - **Event logging** — add structured server-side logging/monitoring around scoring failures (currently persisted as `aiScore = 0` with an error message in `aiSections` rather than surfaced as an HTTP error) so failures are visible to operators without changing the client-facing response contract.
