@@ -19,6 +19,9 @@ import org.springframework.http.MediaType;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.bind.annotation.RequestPart;
 
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 @RestController
@@ -76,8 +79,16 @@ public class ApplicationController {
                 category.setPassed(allPassed);
             });
 
+            List<String> improvements = result.getImprovements() != null
+                    ? result.getImprovements()
+                    : List.of();
+
+            Map<String, Object> aiSectionsPayload = new LinkedHashMap<>();
+            aiSectionsPayload.put("categories", result.getSections());
+            aiSectionsPayload.put("improvements", improvements);
+
             app.setAiScore(result.getScore());
-            app.setAiSections(objectMapper.writeValueAsString(result.getSections()));
+            app.setAiSections(objectMapper.writeValueAsString(aiSectionsPayload));
         } catch (IllegalStateException e) {
             app.setAiScore(0);
             app.setAiSections("{\"error\": \"The scan came back incomplete. Please try again.\"}");

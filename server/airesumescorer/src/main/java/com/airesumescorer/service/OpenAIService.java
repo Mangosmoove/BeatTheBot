@@ -5,6 +5,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.JsonNode;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 
@@ -17,6 +19,8 @@ public class OpenAIService {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     public String scoreResume(String resumeText, String jobDescription) {
+        String today = LocalDate.now().format(DateTimeFormatter.ofPattern("MMMM yyyy"));
+
         String prompt = """
     You are a strict ATS (Applicant Tracking System) scanner. You do not give encouragement
     or coaching — you parse and score resumes the same way automated hiring software does.
@@ -39,10 +43,24 @@ public class OpenAIService {
     - standard_section_headers: Does the resume use standard ATS-recognized headers?
       (e.g. "Experience" or "Work Experience", "Education", "Skills", "Summary" or "Objective")
       Creative headers like "My Journey" or "What I've Built" will fail ATS parsing.
+      NOTE: This text was extracted from a PDF using an automated tool. PDFs often embed a bookmark
+      or outline structure separate from the visible page content, which gets extracted as a short
+      list of bare section header words with no accompanying content, usually appearing at the very
+      end of the text (e.g. a trailing "EXPERIENCE PROJECTS SKILLS EDUCATION" with nothing under each).
+      This is an extraction artifact, not real duplicate content in the visible resume — ignore any
+      such trailing bare-header list entirely and do not treat it as duplicate section headers.
     - dedicated_skills_section: Is there a clearly labeled Skills section with relevant technical terms?
     
     FORMATTING
     - consistent_date_format: Are all dates in a consistent format throughout? (e.g. MM/YYYY or Month YYYY, not mixed)
+      "Present" or "Current" as an end date for an ongoing role is standard and NOT a formatting
+      inconsistency — do not flag it, and do not flag a start date paired with "Present" as suspicious
+      just because it is recent. Today's real date is %s. Before flagging any date as a "future date"
+      issue, compare it carefully and step by step: first compare the year, and only if the years are
+      equal, compare the month number (January=1 through December=12) within that year. A date is only
+      "in the future" if it is strictly later than today's date by this comparison — do not flag a date
+      as future just because it is recent, close to today, or in the same year as today. If in doubt,
+      do NOT flag it as a future date.
     
     For each check:
     - Set "passed" to true or false
@@ -51,9 +69,19 @@ public class OpenAIService {
     
     Deduct points for each failed check. Be specific about what failed and why.
     
+    IMPROVEMENTS
+    After evaluating all checks, write a prioritized list of the 3-5 highest-impact improvements
+    the candidate should make, ordered from most to least impactful. Prioritize failed checks in
+    layout first (these can break parsing entirely), then keywords, then sections, then formatting.
+    If fewer than 3 checks failed, include fewer improvements — never pad the list with restated
+    passing checks or generic advice. Each improvement should be one direct, actionable sentence
+    addressed to the candidate ("you"/"your"), specific enough to act on without repeating a check's
+    "notes" verbatim.
+    
     Respond ONLY with valid JSON in this exact format, no extra text:
     {
       "score": <integer 0-100>,
+      "improvements": [ "<top improvement>", "<next improvement>", "..." ],
       "sections": {
         "layout": {
           "passed": <boolean>,
@@ -91,7 +119,7 @@ public class OpenAIService {
     
     Resume:
     %s
-    """.formatted(jobDescription, resumeText);
+    """.formatted(today, jobDescription, resumeText);
 
         Map<String, Object> requestBody = Map.of(
                 "model", "qwen/qwen3.6-27b",
@@ -113,7 +141,7 @@ public class OpenAIService {
                         )
                 ),
                 "temperature", 0.3,
-                "max_completion_tokens", 1060,
+                "max_completion_tokens", 2000,
                 "reasoning_effort", "none",
                 "response_format", Map.of(
                         "type", "json_object"
