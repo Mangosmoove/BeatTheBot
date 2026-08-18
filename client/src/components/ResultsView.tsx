@@ -1,5 +1,5 @@
 import type { Application, AiSections } from '../types/Application';
-import { CheckCircle2, XCircle, RotateCcw } from 'lucide-react';
+import { CheckCircle2, XCircle, RotateCcw, Sparkles } from 'lucide-react';
 
 interface ResultsViewProps {
   result: Application;
@@ -8,13 +8,15 @@ interface ResultsViewProps {
 
 const ResultsView = ({ result, onResubmit }: ResultsViewProps) => {
   let sections: AiSections = {};
+  let improvements: string[] = [];
   let errorMessage: string | null = null;
   try {
     const parsed = JSON.parse(result.aiSections);
     if (parsed && typeof parsed === 'object' && 'error' in parsed) {
       errorMessage = parsed.error;
     } else {
-      sections = parsed;
+      sections = parsed.categories ?? {};
+      improvements = Array.isArray(parsed.improvements) ? parsed.improvements : [];
     }
   } catch {
     // malformed JSON falls through to the error state below
@@ -39,35 +41,56 @@ const ResultsView = ({ result, onResubmit }: ResultsViewProps) => {
           {errorMessage ?? 'Something went wrong scoring this resume. Try resubmitting.'}
         </p>
       ) : (
-        <div className="grid gap-4 md:grid-cols-2">
-          {Object.entries(sections).map(([categoryName, category]) => (
-            <div key={categoryName} className="rounded-md border border-primary/60 bg-card/40 p-5">
+        <>
+          {improvements.length > 0 && (
+            <div className="rounded-md border border-primary/60 bg-card/40 p-5">
               <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-primary">
-                {category.passed ? (
-                  <CheckCircle2 className="h-4 w-4 text-success" />
-                ) : (
-                  <XCircle className="h-4 w-4 text-destructive" />
-                )}
-                {categoryName}
+                <Sparkles className="h-4 w-4" />
+                top_fixes
               </div>
-              <ul className="mt-3 space-y-2">
-                {Object.entries(category.checks).map(([checkName, check]) => (
-                  <li key={checkName} className="text-sm">
-                    <div className="flex items-center gap-2 font-medium text-foreground">
-                      {check.passed ? (
-                        <CheckCircle2 className="h-3.5 w-3.5 text-success shrink-0" />
-                      ) : (
-                        <XCircle className="h-3.5 w-3.5 text-destructive shrink-0" />
-                      )}
-                      {checkName.replace(/_/g, ' ')}
-                    </div>
-                    <p className="ml-5.5 mt-0.5 text-muted-foreground">{check.notes}</p>
+              <ol className="mt-3 space-y-2">
+                {improvements.map((improvement, i) => (
+                  <li key={i} className="flex gap-3 text-sm text-foreground">
+                    <span className="text-primary">{i + 1}.</span>
+                    <span>{improvement}</span>
                   </li>
                 ))}
-              </ul>
+              </ol>
             </div>
-          ))}
-        </div>
+          )}
+          <div className="grid gap-4 md:grid-cols-2">
+            {Object.entries(sections).map(([categoryName, category]) => (
+              <div
+                key={categoryName}
+                className="rounded-md border border-primary/60 bg-card/40 p-5"
+              >
+                <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-primary">
+                  {category.passed ? (
+                    <CheckCircle2 className="h-4 w-4 text-success" />
+                  ) : (
+                    <XCircle className="h-4 w-4 text-destructive" />
+                  )}
+                  {categoryName}
+                </div>
+                <ul className="mt-3 space-y-2">
+                  {Object.entries(category.checks).map(([checkName, check]) => (
+                    <li key={checkName} className="text-sm">
+                      <div className="flex items-center gap-2 font-medium text-foreground">
+                        {check.passed ? (
+                          <CheckCircle2 className="h-3.5 w-3.5 text-success shrink-0" />
+                        ) : (
+                          <XCircle className="h-3.5 w-3.5 text-destructive shrink-0" />
+                        )}
+                        {checkName.replace(/_/g, ' ')}
+                      </div>
+                      <p className="ml-5.5 mt-0.5 text-muted-foreground">{check.notes}</p>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        </>
       )}
 
       <div className="text-center">
