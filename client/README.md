@@ -1,6 +1,6 @@
 # BeatTheBot — Client
 
-A React front-end that helps job seekers "beat" Applicant Tracking Systems (ATS). Users upload their resume and paste a job description, and the app runs an ATS-style scan that surfaces layout issues, keyword matches, section problems, and formatting red flags before they submit their application. Used [Figma] (https://www.figma.com/design/futAxeRNFuXo7tpz1jRjgv/ai-resume-scorer?node-id=0-1&t=yukhVAhc8LlLkxHi-1) to design landing page. 
+A React front-end that helps job seekers "beat" Applicant Tracking Systems (ATS). Users upload their resume and paste a job description, and the app runs an ATS-style scan that surfaces layout issues, keyword matches, section problems, and formatting red flags before they submit their application. Used [Figma](https://www.figma.com/design/futAxeRNFuXo7tpz1jRjgv/ai-resume-scorer?node-id=0-1&t=yukhVAhc8LlLkxHi-1) to design landing page. 
 
 ## Tech Stack
 
