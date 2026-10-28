@@ -9,7 +9,7 @@ A Spring Boot backend that scores resumes against a job description the way an A
   - `spring-boot-starter-data-jpa` — persistence via Spring Data JPA
 - **Jakarta Persistence (JPA)** — entity mapping
 - **Apache Tika** — extracts raw text from uploaded resume files (PDF, DOCX)
-- **Groq API** (OpenAI-compatible chat completions endpoint, `qwen/qwen3.6-27b`) — LLM-based ATS scoring, called via Spring's `RestClient`
+- **Groq API** (OpenAI-compatible chat completions endpoint, `qwen/qwen3.8-27b`) — LLM-based ATS scoring, called via Spring's `RestClient`
 - **Jackson** (`tools.jackson`) — JSON (de)serialization
 - **PostgreSQL** via JPA
 

@@ -122,7 +122,7 @@ public class OpenAIService {
     """.formatted(today, jobDescription, resumeText);
 
         Map<String, Object> requestBody = Map.of(
-                "model", "qwen/qwen3.6-27b",
+                "model", "qwen/qwen3.8-27b",
                 "messages", List.of(
                         Map.of(
                                 "role", "system",
